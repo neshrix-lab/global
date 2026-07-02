@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Импортёр · NESHRIX Trade</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{--ink:#14201c;--paper:#f1f3ee;--card:#fff;--pine:#1c3a32;--pine-mid:#2e5a4c;--seal:#b0741f;--seal-soft:#f5ead4;--line:#d8dcd3;--line-strong:#c1c7bb;--muted:#646c62;--danger:#9c3f2a;--radius:10px;--mono:"IBM Plex Mono",ui-monospace,monospace;--sans:"Archivo",system-ui,sans-serif}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:var(--sans);background:var(--paper);color:var(--ink);-webkit-font-smoothing:antialiased;line-height:1.55}
+  a{color:inherit;text-decoration:none}
+  .wrap{max-width:1180px;margin:0 auto;padding:0 24px}
+  .eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+  h2.sec{font-size:13px;font-family:var(--mono);text-transform:uppercase;letter-spacing:.12em;color:var(--muted);margin-bottom:16px;font-weight:600}
+  .topbar{background:var(--pine);color:#eef1ea}
+  .topbar .wrap{display:flex;align-items:center;justify-content:space-between;height:60px}
+  .brand{display:flex;align-items:baseline;gap:12px}
+  .brand b{font-weight:800;letter-spacing:.02em;font-size:18px}
+  .brand span{font-family:var(--mono);font-size:11px;letter-spacing:.1em;color:#9fb3a8;text-transform:uppercase}
+  .back{font-family:var(--mono);font-size:12px;color:#c6d2ca;letter-spacing:.04em}
+  .back:hover{color:#fff}
+  /* Hero */
+  .top{border-bottom:1px solid var(--line);background:linear-gradient(180deg,#f6f8f3,var(--paper))}
+  .top .wrap{padding:40px 24px;display:grid;grid-template-columns:1.6fr 1fr;gap:36px;align-items:start}
+  .hname{display:flex;align-items:flex-start;justify-content:space-between;gap:16px}
+  .hname h1{font-size:clamp(1.8rem,3.4vw,2.6rem);font-weight:800;letter-spacing:-.02em;line-height:1.05}
+  .hname .loc{font-family:var(--mono);font-size:13px;color:var(--muted);margin-top:8px;letter-spacing:.03em}
+  .seal-mark{flex-shrink:0;width:72px;height:72px;border-radius:50%;border:2px solid var(--seal);color:var(--seal);display:grid;place-items:center;text-align:center;font-family:var(--mono);font-size:9px;font-weight:600;line-height:1.25;letter-spacing:.06em;transform:rotate(-6deg)}
+  .tagline{font-size:16px;color:var(--pine-mid);margin:16px 0 20px;font-weight:500}
+  .spec-inline{display:flex;flex-wrap:wrap;gap:10px 22px;font-size:13px;color:var(--muted);border-top:1px solid var(--line);padding-top:18px}
+  .spec-inline b{color:var(--ink);font-weight:600}
+  .grade{font-family:var(--mono);font-weight:600;font-size:15px;padding:3px 9px;border-radius:6px;letter-spacing:.04em}
+  .grade.aa{background:#e3ede7;color:var(--pine)} .grade.a{background:#eef2ea;color:var(--pine-mid)} .grade.bbb{background:#f3f0e6;color:var(--seal)}
+  /* Action box (buy-box style) */
+  .buybox{border:1px solid var(--line-strong);border-radius:14px;background:var(--card);padding:22px;position:sticky;top:20px}
+  .buybox .scale .lbl{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:7px}
+  .buybox .scale .lbl span{font-size:12px;color:var(--muted)}
+  .buybox .scale .lbl b{font-family:var(--mono);font-size:16px;color:var(--ink);font-weight:600}
+  .buybox .scale .lbl b em{font-style:normal;font-size:11px;color:var(--muted);font-weight:400}
+  .bar{height:8px;background:#eceee8;border-radius:4px;overflow:hidden;margin-bottom:18px}
+  .bar>i{display:block;height:100%;background:var(--pine-mid);border-radius:4px}
+  .buybox ul{list-style:none;font-size:13px;color:var(--muted);display:flex;flex-direction:column;gap:9px;margin:16px 0 20px}
+  .buybox li{display:flex;align-items:flex-start;gap:8px}
+  .buybox li svg{width:15px;height:15px;stroke:var(--pine-mid);flex-shrink:0;margin-top:2px}
+  .btn{width:100%;height:48px;border-radius:var(--radius);font-family:var(--sans);font-size:15px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:8px;border:1px solid var(--pine);background:var(--pine);color:#fff;transition:background .15s}
+  .btn:hover{background:var(--pine-mid)}
+  .btn:focus-visible{outline:2px solid var(--seal);outline-offset:2px}
+  .buybox .note{font-size:11.5px;color:var(--muted);text-align:center;margin-top:12px;line-height:1.5}
+  /* Sections */
+  section.blk{padding:44px 0;border-bottom:1px solid var(--line)}
+  /* Gallery */
+  .gallery{display:grid;grid-template-columns:2fr 1fr 1fr;grid-template-rows:1fr 1fr;gap:12px;height:340px}
+  .ph{background:repeating-linear-gradient(135deg,#e9ede6,#e9ede6 12px,#e4e9e1 12px,#e4e9e1 24px);border:1px solid var(--line);border-radius:12px;position:relative;overflow:hidden;display:flex;align-items:flex-end}
+  .ph:first-child{grid-row:1/3}
+  .ph .cap{background:linear-gradient(0deg,rgba(20,32,28,.72),transparent);color:#fff;font-size:12px;padding:16px 12px 10px;width:100%;font-weight:500}
+  .ph .ico{position:absolute;top:12px;left:12px;width:22px;height:22px;stroke:#9aa79d;opacity:.7}
+  /* Stats */
+  .stats{display:grid;grid-template-columns:repeat(5,1fr);gap:14px}
+  .stat{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:18px}
+  .stat .v{font-family:var(--mono);font-size:26px;font-weight:600;color:var(--pine);letter-spacing:-.01em}
+  .stat .v small{font-size:14px;color:var(--muted)}
+  .stat .k{font-size:12px;color:var(--muted);margin-top:4px}
+  /* Two-col profile */
+  .profile{display:grid;grid-template-columns:1.3fr 1fr;gap:40px}
+  .profile p.about{font-size:15px;color:var(--ink);line-height:1.7;margin-bottom:22px}
+  .kv{display:flex;flex-direction:column;gap:14px}
+  .kv .row{display:flex;justify-content:space-between;gap:16px;font-size:14px;border-bottom:1px dotted var(--line-strong);padding-bottom:12px}
+  .kv .row span{color:var(--muted)}
+  .kv .row b{color:var(--ink);font-weight:600;text-align:right}
+  .chips{display:flex;flex-wrap:wrap;gap:7px}
+  .chip{font-size:12px;padding:4px 11px;border-radius:20px;border:1px solid var(--line-strong);color:var(--pine);background:#f7f9f5}
+  /* Locations */
+  .loc-grid{display:grid;grid-template-columns:1fr 1.3fr;gap:28px;align-items:start}
+  .loc-list{display:flex;flex-direction:column;gap:12px}
+  .loc-item{display:flex;gap:12px;align-items:flex-start;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px 16px}
+  .loc-item svg{width:18px;height:18px;stroke:var(--seal);flex-shrink:0;margin-top:2px}
+  .loc-item b{font-size:14px;font-weight:600;display:block}
+  .loc-item span{font-size:12px;color:var(--muted);font-family:var(--mono)}
+  .map{background:#e7ece5;border:1px solid var(--line);border-radius:12px;height:100%;min-height:220px;position:relative;overflow:hidden}
+  .map .grid-bg{position:absolute;inset:0;background-image:linear-gradient(var(--line) 1px,transparent 1px),linear-gradient(90deg,var(--line) 1px,transparent 1px);background-size:32px 32px;opacity:.5}
+  .map .pin{position:absolute;width:12px;height:12px;background:var(--seal);border:2px solid #fff;border-radius:50%;box-shadow:0 0 0 4px rgba(176,116,31,.2)}
+  .map .lbl{position:absolute;bottom:12px;left:14px;font-family:var(--mono);font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.1em}
+  /* Verification */
+  .verify{background:var(--seal-soft);border:1px solid #e5d3a8;border-radius:14px;padding:26px}
+  .verify h3{font-size:16px;font-weight:700;margin-bottom:6px;color:var(--ink)}
+  .verify>p{font-size:13px;color:#7a5c1f;margin-bottom:18px}
+  .checks{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+  .check{display:flex;gap:10px;align-items:center;font-size:14px}
+  .check svg{width:18px;height:18px;stroke:var(--seal);flex-shrink:0}
+  @media (max-width:860px){.top .wrap{grid-template-columns:1fr}.buybox{position:static}.stats{grid-template-columns:repeat(2,1fr)}.profile,.loc-grid{grid-template-columns:1fr;gap:24px}.gallery{grid-template-columns:1fr 1fr;height:auto;grid-auto-rows:150px}.ph:first-child{grid-row:auto;grid-column:1/3}.checks{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<header class="topbar"><div class="wrap">
+  <a class="brand" href="dashboard.html" style="color:inherit;text-decoration:none"><b>NESHRIX Trade</b><span>Экспортный кокпит · Azersun</span></a>
+  <nav style="display:flex;gap:18px;margin-left:auto;margin-right:20px;font-size:13px"><a href="dashboard.html" style="color:#c6d2ca">Дашборд</a><a href="index.html" style="color:#c6d2ca">Импортёры</a></nav><a class="back" href="index.html">← Все импортёры</a>
+</div></header>
+
+<main id="app"></main>
+
+<script>
+// Единый источник данных прототипа NESHRIX Trade.
+// В боевой версии заменяется на API / Supabase. Данные вымышленные — заменить реальными перед показом Azersun.
+
+const IMPORTERS = [
+  {
+    id: "nordwest", name: "Nordwest Foods GmbH", city: "Гамбург", country: "Германия", iso: "DE",
+    grade: "AA", cap: 38, cats: ["Чай", "Консервы"], pay: ["Аккредитив", "Эскроу"], cold: true, years: 14, disputes: 0,
+    tagline: "Дистрибьютор в сетевой ритейл Северной Европы",
+    about: "Работает с крупными продуктовыми сетями Германии и Бенилюкса. Собственная логистика и складской комплекс под Гамбургом. Интерес к private label по чаю и консервам.",
+    incoterms: ["FOB", "CIF", "DAP"], channels: ["Сетевой ритейл", "HoReCa", "Онлайн"],
+    stats: { onTime: 98, repeat: 71, markets: 6, retailPoints: 240, avgOrder: 12 },
+    photos: ["Распределительный центр, Гамбург", "Полка: чай в сети REWE", "Складской комплекс", "Приёмка контейнеров"],
+    locations: [{ name: "Штаб-квартира и склад, Гамбург", type: "HQ · логистика" }, { name: "РЦ Берлин", type: "Логистика" }, { name: "Офис Роттердам", type: "Закупки" }],
+  },
+  {
+    id: "gulf", name: "Gulf Provision Trading", city: "Дубай", country: "ОАЭ", iso: "AE",
+    grade: "AA", cap: 34, cats: ["Чай", "Молочная продукция", "Соки"], pay: ["Эскроу"], cold: true, years: 11, disputes: 0,
+    tagline: "Импорт и дистрибуция халяльных продуктов по Заливу",
+    about: "Один из ведущих импортёров продуктов питания в ОАЭ с реэкспортом в Саудовскую Аравию и Катар. Требует халяль-сертификацию и арабскую маркировку. Развитая холодовая цепь.",
+    incoterms: ["CIF", "DAP", "DDP"], channels: ["Гипермаркеты", "Оптовые базы", "HoReCa"],
+    stats: { onTime: 96, repeat: 68, markets: 4, retailPoints: 310, avgOrder: 14 },
+    photos: ["Оптовый склад, Джебель-Али", "Холодильный терминал", "Полка молочной продукции", "Реэкспортный хаб"],
+    locations: [{ name: "Склад Джебель-Али, Дубай", type: "HQ · реэкспорт" }, { name: "Филиал Абу-Даби", type: "Дистрибуция" }],
+  },
+  {
+    id: "rashid", name: "Al-Rashid Distribution", city: "Эр-Рияд", country: "Саудовская Аравия", iso: "SA",
+    grade: "A", cap: 29, cats: ["Молочная продукция", "Соки"], pay: ["Аккредитив", "Эскроу"], cold: true, years: 9, disputes: 1,
+    tagline: "Поставки в сети Саудовской Аравии",
+    about: "Фокус на молочной продукции и соках для внутреннего рынка КСА. Строгие требования к SFDA-регистрации и срокам годности. Работает по аккредитиву.",
+    incoterms: ["CIF", "DDP"], channels: ["Сетевой ритейл", "Оптовые базы"],
+    stats: { onTime: 94, repeat: 60, markets: 2, retailPoints: 180, avgOrder: 11 },
+    photos: ["РЦ Эр-Рияд", "Холодная логистика", "Полка соков", "Приёмка"],
+    locations: [{ name: "РЦ Эр-Рияд", type: "HQ" }, { name: "Склад Джидда", type: "Логистика" }],
+  },
+  {
+    id: "volga", name: "Volga Retail Group", city: "Москва", country: "Россия", iso: "RU",
+    grade: "A", cap: 40, cats: ["Чай", "Консервы", "Соки"], pay: ["Эскроу", "Предоплата"], cold: false, years: 17, disputes: 1,
+    tagline: "Федеральный дистрибьютор FMCG",
+    about: "Крупнейший объём в выборке. Работает с федеральными сетями по всей РФ. Быстрая оборачиваемость, интерес к постоянным контрактам на чай и консервы.",
+    incoterms: ["FCA", "DAP"], channels: ["Федеральные сети", "Дискаунтеры", "Оптовые базы"],
+    stats: { onTime: 92, repeat: 74, markets: 1, retailPoints: 520, avgOrder: 18 },
+    photos: ["РЦ Подмосковье", "Кросс-докинг", "Полка чая", "Автопарк"],
+    locations: [{ name: "РЦ Москва", type: "HQ · логистика" }, { name: "РЦ Казань", type: "Логистика" }, { name: "РЦ Екатеринбург", type: "Логистика" }],
+  },
+  {
+    id: "silkroad", name: "Silk Road Trading", city: "Ташкент", country: "Узбекистан", iso: "UZ",
+    grade: "A", cap: 22, cats: ["Чай", "Консервы"], pay: ["Эскроу"], cold: false, years: 7, disputes: 0,
+    tagline: "Импорт в Центральную Азию",
+    about: "Растущий импортёр с дистрибуцией по Узбекистану и приграничным регионам. Высокий спрос на чай. Готов к долгосрочным контрактам.",
+    incoterms: ["FCA", "DAP"], channels: ["Оптовые базы", "Традиционная розница"],
+    stats: { onTime: 90, repeat: 55, markets: 2, retailPoints: 140, avgOrder: 9 },
+    photos: ["Оптовый рынок, Ташкент", "Склад", "Развес чая", "Логистика"],
+    locations: [{ name: "Склад Ташкент", type: "HQ" }, { name: "Точка Самарканд", type: "Дистрибуция" }],
+  },
+  {
+    id: "kaspiy", name: "Kaspiy Import LLP", city: "Алматы", country: "Казахстан", iso: "KZ",
+    grade: "A", cap: 26, cats: ["Чай", "Молочная продукция"], pay: ["Аккредитив", "Эскроу"], cold: true, years: 12, disputes: 0,
+    tagline: "Дистрибуция по Казахстану",
+    about: "Стабильный партнёр с холодовой цепью. Работает с сетями и HoReCa Алматы и Астаны. Аккуратная платёжная история.",
+    incoterms: ["FCA", "CIF", "DAP"], channels: ["Сетевой ритейл", "HoReCa"],
+    stats: { onTime: 97, repeat: 66, markets: 1, retailPoints: 160, avgOrder: 10 },
+    photos: ["РЦ Алматы", "Холодильный склад", "Полка молочной продукции", "Приёмка"],
+    locations: [{ name: "РЦ Алматы", type: "HQ" }, { name: "Склад Астана", type: "Логистика" }],
+  },
+  {
+    id: "anatolia", name: "Anatolia Gıda A.Ş.", city: "Стамбул", country: "Турция", iso: "TR",
+    grade: "AA", cap: 31, cats: ["Консервы", "Соки"], pay: ["Аккредитив"], cold: false, years: 15, disputes: 0,
+    tagline: "Импорт и реэкспорт из Турции",
+    about: "Импортирует и реэкспортирует консервы и соки на Ближний Восток и в Северную Африку. Опыт работы с аккредитивами и большими объёмами.",
+    incoterms: ["FOB", "CIF"], channels: ["Оптовые базы", "Реэкспорт"],
+    stats: { onTime: 95, repeat: 70, markets: 5, retailPoints: 90, avgOrder: 15 },
+    photos: ["Порт-склад, Стамбул", "Реэкспортный терминал", "Полка консервов", "Погрузка"],
+    locations: [{ name: "Терминал Стамбул", type: "HQ · реэкспорт" }, { name: "Склад Мерсин", type: "Логистика" }],
+  },
+  {
+    id: "caucasus", name: "Caucasus Supply Ltd", city: "Тбилиси", country: "Грузия", iso: "GE",
+    grade: "BBB", cap: 12, cats: ["Чай", "Консервы"], pay: ["Эскроу"], cold: false, years: 5, disputes: 0,
+    tagline: "Дистрибуция по Грузии",
+    about: "Средний импортёр с растущей сетью. Близкая логистика к Азербайджану — короткое плечо доставки. Чистая история, но меньший масштаб.",
+    incoterms: ["FCA", "DAP"], channels: ["Традиционная розница", "Оптовые базы"],
+    stats: { onTime: 91, repeat: 52, markets: 1, retailPoints: 70, avgOrder: 6 },
+    photos: ["Склад Тбилиси", "Розничная точка", "Полка чая", "Логистика"],
+    locations: [{ name: "Склад Тбилиси", type: "HQ" }, { name: "Точка Батуми", type: "Дистрибуция" }],
+  },
+  {
+    id: "doha", name: "Doha Fine Foods", city: "Доха", country: "Катар", iso: "QA",
+    grade: "A", cap: 18, cats: ["Молочная продукция", "Соки"], pay: ["Эскроу"], cold: true, years: 8, disputes: 0,
+    tagline: "Премиальный импорт в Катар",
+    about: "Импортёр премиального сегмента с холодовой цепью. Требует халяль и высокие стандарты упаковки. Работает с премиум-ритейлом.",
+    incoterms: ["CIF", "DDP"], channels: ["Премиум-ритейл", "HoReCa"],
+    stats: { onTime: 96, repeat: 63, markets: 1, retailPoints: 60, avgOrder: 8 },
+    photos: ["Склад Доха", "Холодильный терминал", "Премиум-полка", "Приёмка"],
+    locations: [{ name: "Склад Доха", type: "HQ" }],
+  },
+  {
+    id: "britannia", name: "Britannia Wholesale", city: "Лондон", country: "Великобритания", iso: "GB",
+    grade: "AA", cap: 33, cats: ["Чай", "Консервы"], pay: ["Аккредитив", "Эскроу"], cold: false, years: 19, disputes: 0,
+    tagline: "Оптовая дистрибуция в Великобритании",
+    about: "Опытный оптовик с фокусом на чай (в т.ч. этнический ритейл и диаспору). Долгая безупречная история. Интерес к устойчивым контрактам.",
+    incoterms: ["FOB", "CIF", "DAP"], channels: ["Оптовые базы", "Этнический ритейл", "Онлайн"],
+    stats: { onTime: 98, repeat: 76, markets: 3, retailPoints: 210, avgOrder: 13 },
+    photos: ["Склад, Лондон", "Дистрибуция", "Полка чая", "Погрузка"],
+    locations: [{ name: "Склад Лондон", type: "HQ" }, { name: "РЦ Бирмингем", type: "Логистика" }],
+  },
+  {
+    id: "levant", name: "Levant Trade House", city: "Тель-Авив", country: "Израиль", iso: "IL",
+    grade: "A", cap: 20, cats: ["Консервы", "Соки"], pay: ["Эскроу"], cold: false, years: 10, disputes: 1,
+    tagline: "Импорт продуктов питания в Израиль",
+    about: "Работает с сетями и оптом. Требования к маркировке и сертификации. Интерес к консервам и сокам среднего сегмента.",
+    incoterms: ["CIF", "DAP"], channels: ["Сетевой ритейл", "Оптовые базы"],
+    stats: { onTime: 93, repeat: 58, markets: 1, retailPoints: 110, avgOrder: 9 },
+    photos: ["Склад, Тель-Авив", "Дистрибуция", "Полка консервов", "Приёмка"],
+    locations: [{ name: "Склад Тель-Авив", type: "HQ" }, { name: "Точка Хайфа", type: "Дистрибуция" }],
+  },
+  {
+    id: "baltic", name: "Baltic Provisions", city: "Рига", country: "Латвия", iso: "LV",
+    grade: "BBB", cap: 14, cats: ["Чай", "Молочная продукция"], pay: ["Эскроу"], cold: true, years: 6, disputes: 0,
+    tagline: "Дистрибуция в Балтии",
+    about: "Средний импортёр с холодовой цепью и выходом на балтийский рынок и приграничье ЕС. Чистая история, растущий масштаб.",
+    incoterms: ["FCA", "CIF", "DAP"], channels: ["Сетевой ритейл", "Оптовые базы"],
+    stats: { onTime: 94, repeat: 54, markets: 3, retailPoints: 80, avgOrder: 7 },
+    photos: ["Склад Рига", "Холодильный терминал", "Полка", "Логистика"],
+    locations: [{ name: "Склад Рига", type: "HQ" }, { name: "Точка Вильнюс", type: "Дистрибуция" }],
+  },
+];
+
+const SCALE = { LARGE_MIN: 25, MID_MIN: 8, MAX_CAP: 40 };
+const GRADE_RANK = { AA: 3, A: 2, BBB: 1 };
+function getImporter(id) { return IMPORTERS.find(i => i.id === id); }
+function tierOf(cap) { return cap >= SCALE.LARGE_MIN ? "large" : "mid"; }
+
+</script>
+<script>
+const PIN = '<svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M12 21s7-6.3 7-11a7 7 0 10-14 0c0 4.7 7 11 7 11z"/><circle cx="12" cy="10" r="2.5"/></svg>';
+const CHK = '<svg viewBox="0 0 24 24" fill="none" stroke-width="2.2"><path d="M20 6L9 17l-5-5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+const IMG = '<svg class="ico" viewBox="0 0 24 24" fill="none" stroke-width="1.8"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="8.5" cy="9.5" r="1.5"/><path d="M21 16l-5-5L5 20"/></svg>';
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+
+const id = new URLSearchParams(location.search).get("id");
+const i = getImporter(id);
+const app = document.getElementById("app");
+
+if (!i) {
+  app.innerHTML = `<div class="wrap" style="padding:80px 24px;text-align:center;color:var(--muted)"><h1 style="color:var(--ink);margin-bottom:8px">Импортёр не найден</h1><p>Вернитесь к <a href="index.html" style="color:var(--pine-mid);text-decoration:underline">списку импортёров</a>.</p></div>`;
+} else {
+  const gradeCls = i.grade === "AA" ? "aa" : i.grade === "A" ? "a" : "bbb";
+  const pct = Math.round((i.cap / SCALE.MAX_CAP) * 100);
+  const disp = i.disputes === 0 ? "нет" : i.disputes;
+  document.title = i.name + " · NESHRIX Trade";
+
+  const pins = [{ t: 22, l: 30 }, { t: 55, l: 62 }, { t: 40, l: 78 }].slice(0, i.locations.length);
+
+  app.innerHTML = `
+  <section class="top"><div class="wrap">
+    <div>
+      <div class="eyebrow">Импортёр · проверено NESHRIX</div>
+      <div class="hname" style="margin-top:12px">
+        <div><h1>${esc(i.name)}</h1><div class="loc">${esc(i.city)}, ${esc(i.country)} · ${i.iso}</div></div>
+        <div class="seal-mark">✓<br>NESHRIX<br>KYB</div>
+      </div>
+      <div class="tagline">${esc(i.tagline)}</div>
+      <div class="spec-inline">
+        <span>Надёжность <span class="grade ${gradeCls}">${i.grade}</span></span>
+        <span>На рынке <b>${i.years} лет</b></span>
+        <span>Споры: <b>${disp}</b></span>
+        <span>Холод. цепь: <b>${i.cold ? "да" : "нет"}</b></span>
+      </div>
+    </div>
+    <aside class="buybox">
+      <div class="scale">
+        <div class="lbl"><span>Подтверждённый масштаб</span><b>${i.cap} <em>конт./мес</em></b></div>
+        <div class="bar"><i style="width:${pct}%"></i></div>
+      </div>
+      <ul>
+        <li>${CHK}<span>Оплата: <b style="color:var(--pine-mid)">${i.pay.join(", ")}</b></span></li>
+        <li>${CHK}<span>Incoterms: ${i.incoterms.join(", ")}</span></li>
+        <li>${CHK}<span>Категории: ${i.cats.join(", ")}</span></li>
+      </ul>
+      <a class="btn" href="deal-room.html?importer=${i.id}">Обсудить сделку →</a>
+      <p class="note">Обсуждение ведётся внутри платформы под гарантией NESHRIX. Оплата — через эскроу.</p>
+    </aside>
+  </div></section>
+
+  <div class="wrap">
+    <section class="blk">
+      <h2 class="sec">Объекты и присутствие</h2>
+      <div class="gallery">${i.photos.map(p => `<div class="ph">${IMG}<div class="cap">${esc(p)}</div></div>`).join("")}</div>
+    </section>
+
+    <section class="blk">
+      <h2 class="sec">Показатели</h2>
+      <div class="stats">
+        <div class="stat"><div class="v">${i.stats.onTime}<small>%</small></div><div class="k">Поставки в срок</div></div>
+        <div class="stat"><div class="v">${i.stats.repeat}<small>%</small></div><div class="k">Повторные заказы</div></div>
+        <div class="stat"><div class="v">${i.stats.retailPoints}</div><div class="k">Точек в рознице</div></div>
+        <div class="stat"><div class="v">${i.stats.markets}</div><div class="k">Рынков сбыта</div></div>
+        <div class="stat"><div class="v">${i.stats.avgOrder}<small> конт.</small></div><div class="k">Средний заказ</div></div>
+      </div>
+    </section>
+
+    <section class="blk">
+      <h2 class="sec">Профиль</h2>
+      <div class="profile">
+        <div>
+          <p class="about">${esc(i.about)}</p>
+          <h2 class="sec" style="margin-top:6px">Каналы сбыта</h2>
+          <div class="chips">${i.channels.map(c => `<span class="chip">${esc(c)}</span>`).join("")}</div>
+        </div>
+        <div class="kv">
+          <div class="row"><span>Категории закупок</span><b>${i.cats.join(", ")}</b></div>
+          <div class="row"><span>Инструменты оплаты</span><b>${i.pay.join(", ")}</b></div>
+          <div class="row"><span>Incoterms</span><b>${i.incoterms.join(", ")}</b></div>
+          <div class="row"><span>Холодовая цепь</span><b>${i.cold ? "да" : "нет"}</b></div>
+          <div class="row"><span>Подтверждённый масштаб</span><b>${i.cap} конт./мес</b></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="blk">
+      <h2 class="sec">Локации</h2>
+      <div class="loc-grid">
+        <div class="loc-list">${i.locations.map(l => `<div class="loc-item">${PIN}<div><b>${esc(l.name)}</b><span>${esc(l.type)}</span></div></div>`).join("")}</div>
+        <div class="map"><div class="grid-bg"></div>${pins.map(p => `<div class="pin" style="top:${p.t}%;left:${p.l}%"></div>`).join("")}<div class="lbl">Карта локаций · схематично</div></div>
+      </div>
+    </section>
+
+    <section class="blk" style="border-bottom:0">
+      <div class="verify">
+        <h3>Что проверил NESHRIX</h3>
+        <p>Проверка пройдена · ${i.grade} · масштаб подтверждён</p>
+        <div class="checks">
+          <div class="check">${CHK}<span>Регистрация и бенефициарные владельцы</span></div>
+          <div class="check">${CHK}<span>Финансовая устойчивость</span></div>
+          <div class="check">${CHK}<span>История платежей по сделкам</span></div>
+          <div class="check">${CHK}<span>Подтверждённые объёмы закупок</span></div>
+        </div>
+      </div>
+    </section>
+  </div>`;
+}
+</script>
+<script>window.TRADEMAN_CONTEXT={screen:"importer", importerId:new URLSearchParams(location.search).get("id")};</script>
+<script>
+// Trademan — копилот экспорт-отдела. Имитация ИИ для прототипа (в боевой версии — Claude API).
+// Читает window.TRADEMAN_CONTEXT = { screen, importerId, dealId } для контекстных подсказок.
+(function () {
+  var ctx = window.TRADEMAN_CONTEXT || { screen: "" };
+  var esc = function (s) { return String(s).replace(/[&<>"]/g, function (c) { return ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]; }); };
+
+  var css = ''
+    + '.tm-launch{position:fixed;right:22px;bottom:22px;z-index:9998;display:inline-flex;align-items:center;gap:9px;height:48px;padding:0 18px 0 15px;border-radius:26px;border:1px solid #16302a;background:#1c3a32;color:#fff;font-family:"Archivo",system-ui,sans-serif;font-size:14px;font-weight:600;cursor:pointer;box-shadow:0 8px 24px -10px rgba(20,32,28,.55)}'
+    + '.tm-launch:hover{background:#2e5a4c}'
+    + '.tm-launch .dot{width:9px;height:9px;border-radius:50%;background:#b0741f;box-shadow:0 0 0 4px rgba(176,116,31,.25)}'
+    + '.tm-panel{position:fixed;top:0;right:0;z-index:9999;width:400px;max-width:100vw;height:100%;background:#f1f3ee;border-left:1px solid #d8dcd3;display:flex;flex-direction:column;transform:translateX(100%);transition:transform .28s ease;font-family:"Archivo",system-ui,sans-serif}'
+    + '.tm-panel.open{transform:none}'
+    + '.tm-head{background:#1c3a32;color:#fff;padding:16px 18px;display:flex;align-items:center;gap:11px}'
+    + '.tm-head .m{width:34px;height:34px;border-radius:9px;background:#b0741f;display:grid;place-items:center;font-family:"IBM Plex Mono",monospace;font-weight:600;font-size:13px}'
+    + '.tm-head b{font-size:15px;font-weight:700;display:block}'
+    + '.tm-head span{font-size:11px;color:#9fb3a8;font-family:"IBM Plex Mono",monospace;letter-spacing:.06em}'
+    + '.tm-head .x{margin-left:auto;background:none;border:0;color:#c6d2ca;font-size:22px;cursor:pointer;line-height:1}'
+    + '.tm-ctx{font-size:11px;font-family:"IBM Plex Mono",monospace;color:#646c62;padding:10px 18px;border-bottom:1px solid #d8dcd3;background:#e9ede6}'
+    + '.tm-body{flex:1;overflow-y:auto;padding:18px;display:flex;flex-direction:column;gap:12px}'
+    + '.tm-msg{max-width:88%;padding:11px 14px;border-radius:14px;font-size:14px;line-height:1.5;white-space:pre-line}'
+    + '.tm-msg.tm-ai{align-self:flex-start;background:#fff;border:1px solid #d8dcd3;border-bottom-left-radius:4px}'
+    + '.tm-msg.tm-me{align-self:flex-end;background:#1c3a32;color:#fff;border-bottom-right-radius:4px}'
+    + '.tm-typing{align-self:flex-start;color:#646c62;font-size:13px;font-style:italic}'
+    + '.tm-sugg{display:flex;flex-wrap:wrap;gap:7px;padding:0 18px 12px}'
+    + '.tm-sg{font-size:12.5px;padding:7px 12px;border-radius:18px;border:1px solid #c1c7bb;background:#f7f9f5;color:#1c3a32;cursor:pointer;text-align:left}'
+    + '.tm-sg:hover{border-color:#2e5a4c;background:#eef3ea}'
+    + '.tm-foot{padding:12px 18px;border-top:1px solid #d8dcd3;background:#f1f3ee}'
+    + '.tm-inrow{display:flex;gap:9px}'
+    + '.tm-inrow input{flex:1;height:42px;padding:0 13px;border:1px solid #c1c7bb;border-radius:9px;background:#fff;font-family:inherit;font-size:14px;color:#14201c}'
+    + '.tm-inrow input:focus{outline:2px solid #2e5a4c;outline-offset:1px;border-color:transparent}'
+    + '.tm-send{width:42px;height:42px;border:1px solid #1c3a32;background:#1c3a32;border-radius:9px;color:#fff;cursor:pointer;font-size:18px}'
+    + '.tm-send:hover{background:#2e5a4c}'
+    + '.tm-disc{font-size:10.5px;color:#8a8f86;text-align:center;margin-top:9px;font-family:"IBM Plex Mono",monospace}'
+    + '@media(max-width:480px){.tm-panel{width:100vw}}';
+  var st = document.createElement("style"); st.textContent = css; document.head.appendChild(st);
+
+  var imp = (typeof getImporter === "function" && ctx.importerId) ? getImporter(ctx.importerId) : null;
+  var deal = (typeof getDeal === "function" && ctx.dealId) ? getDeal(ctx.dealId) : null;
+  if (!imp && deal && typeof getImporter === "function") imp = getImporter(deal.importer);
+
+  var ctxLine = "Контекст: главный экран";
+  if (ctx.screen === "importer" && imp) ctxLine = "Контекст: импортёр — " + imp.name;
+  else if (ctx.screen === "deal-room" && imp) ctxLine = "Контекст: обсуждение с " + imp.name;
+  else if (ctx.screen === "deal" && deal) ctxLine = "Контекст: сделка " + deal.id;
+  else if (ctx.screen === "compliance") ctxLine = "Контекст: комплаенс-чеклист";
+  else if (ctx.screen === "contract" && deal) ctxLine = "Контекст: договор по " + deal.id;
+  else if (ctx.screen === "importers") ctxLine = "Контекст: список импортёров";
+
+  var suggByScreen = {
+    dashboard: ["Что горит сегодня?", "Сводка по активным сделкам", "Какая задача в приоритете?"],
+    importers: ["Кто лучше под 20 конт. чая в Залив?", "Объясни рейтинг надёжности", "Кого сравнить?"],
+    importer: ["Почему этот импортёр подходит?", "Какие риски по нему?", "Собери чеклист комплаенса"],
+    "deal-room": ["Предложи структуру запроса", "Переведи мой запрос на английский", "Что уточнить у импортёра?"],
+    deal: ["Объясни статус простыми словами", "Каких документов не хватает?", "Проверь комплаенс"],
+    compliance: ["Объясни требования по стране", "Чего не хватает в чеклисте?", "Приложить к сделке?"],
+    contract: ["Проверь черновик договора", "Объясни пункт про эскроу", "Что проверить перед отправкой?"]
+  };
+  var suggestions = suggByScreen[ctx.screen] || ["Что ты умеешь?", "Помоги со сделкой"];
+
+  var country = imp ? imp.country : "";
+  var gulf = ["ОАЭ", "Саудовская Аравия", "Катар"].indexOf(country) >= 0;
+
+  function reply(t) {
+    t = (t || "").toLowerCase();
+    if (t.indexOf("комплаенс") >= 0 || t.indexOf("сертифик") >= 0 || t.indexOf("требован") >= 0)
+      return "Для " + (imp ? imp.country : "рынка назначения") + " черновой чеклист: сертификат происхождения, соответствие маркировки"
+        + (imp && imp.cold ? ", соблюдение холодовой цепи" : "")
+        + (gulf ? ", халяль-сертификация и арабская этикетка" : "")
+        + ". Открыть полный чеклист на экране «Комплаенс» — проверьте перед приложением к сделке.";
+    if (t.indexOf("договор") >= 0 || t.indexOf("контракт") >= 0)
+      return "Готовлю черновик трёхстороннего договора: Azersun (продавец), " + (imp ? imp.name : "импортёр") + " (покупатель), NESHRIX (гарант). Инструмент — эскроу, раскрытие после приёмки. Это черновик — проверьте и отправьте импортёру на согласование.";
+    if (t.indexOf("подход") >= 0 || t.indexOf("почему") >= 0 || (t.indexOf("импортёр") >= 0 && t.indexOf("под ") >= 0) || t.indexOf("матч") >= 0)
+      return (imp ? imp.name + " " : "Импортёр ") + "проходит по масштабу" + (imp ? " (" + imp.cap + " конт./мес)" : "") + ", надёжности" + (imp ? " " + imp.grade : "") + " и работает с эскроу. Совпадает по категориям и способу оплаты. Это оценка на основе проверки NESHRIX, финальное решение — за вами.";
+    if (t.indexOf("перевед") >= 0 || t.indexOf("англ") >= 0)
+      return "Готов перевести переписку RU ↔ EN / арабский прямо в комнате сделки. Пришлите текст запроса — верну перевод черновиком, вы подтвердите перед отправкой.";
+    if (t.indexOf("документ") >= 0 || t.indexOf("не хватает") >= 0)
+      return "По сделке" + (deal ? " " + deal.id : "") + " не хватает: сертификата происхождения и подтверждения маркировки. Инвойс и упаковочный лист — черновики готовы. Загрузите недостающее, и я перепроверю комплект.";
+    if (t.indexOf("статус") >= 0)
+      return deal ? ("Сделка " + deal.id + " — статус «" + (STATUSES[statusIndex(deal.status)] || {}).label + "». Простыми словами: " + statusPlain(deal.status)) : "Открой конкретную сделку — объясню её статус по шагам.";
+    if (t.indexOf("горит") >= 0 || t.indexOf("приоритет") >= 0 || t.indexOf("задач") >= 0)
+      return "Сегодня в приоритете: подтвердить комплаенс по D-1042 (Залив, халяль) и согласовать цену по D-1039. По D-1024 ждёт подтверждение приёмки — это раскрытие эскроу.";
+    if (t.indexOf("сводка") >= 0 || t.indexOf("активны") >= 0)
+      return "Активных сделок: 5. На стадии эскроу — 1, согласование — 1, отгрузка — 1, приёмка — 1, черновик — 1. Суммарный объём в работе — около 92 контейнеров.";
+    if (t.indexOf("эскроу") >= 0)
+      return "Эскроу: импортёр вносит оплату на счёт-эскроу до отгрузки. Деньги замораживаются и раскрываются Azersun только после подтверждённой приёмки. Если приёмки нет — средства возвращаются. Риск неплатежа не на вашем балансе.";
+    if (t.indexOf("умеешь") >= 0)
+      return "Я помогаю экспорт-отделу: подбираю и объясняю импортёров, собираю чеклисты комплаенса по паре продукт × страна, готовлю черновики договоров и документов, перевожу переписку. Я готовлю черновики — подтверждаете всегда вы.";
+    return "Принял. Могу собрать чеклист комплаенса, подготовить черновик договора, объяснить импортёра или статус сделки. С чего начать?";
+  }
+  function statusPlain(s) {
+    return ({ draft: "черновик, условия ещё не согласованы.", review: "условия на согласовании с импортёром.", escrow: "импортёр внёс оплату в эскроу, готовим отгрузку.", shipping: "товар в пути.", acceptance: "ждём подтверждения приёмки — после него эскроу раскрывается.", closed: "оплата раскрыта, сделка закрыта." })[s] || "";
+  }
+
+  var open = false, msgs = [{ r: "ai", t: "Здравствуйте. Я Trademan — ассистент экспорт-отдела. " + (imp ? "Вижу импортёра " + imp.name + ". " : "") + "Готовлю черновики, решение за вами. Чем помочь?" }];
+
+  var launch = document.createElement("button");
+  launch.className = "tm-launch"; launch.innerHTML = '<span class="dot"></span> Trademan';
+  var panel = document.createElement("div");
+  panel.className = "tm-panel";
+  panel.innerHTML = ''
+    + '<div class="tm-head"><div class="m">TM</div><div><b>Trademan</b><span>ассистент · NESHRIX Trade</span></div><button class="x" aria-label="Закрыть">×</button></div>'
+    + '<div class="tm-ctx">' + esc(ctxLine) + '</div>'
+    + '<div class="tm-body" id="tmBody"></div>'
+    + '<div class="tm-sugg" id="tmSugg"></div>'
+    + '<div class="tm-foot"><div class="tm-inrow"><input id="tmIn" placeholder="Спросите Trademan…" aria-label="Сообщение"><button class="tm-send" id="tmSend" aria-label="Отправить">→</button></div><div class="tm-disc">Прототип · имитация. Готовит черновики — подтверждаете вы.</div></div>';
+  document.body.appendChild(launch); document.body.appendChild(panel);
+
+  var body = panel.querySelector("#tmBody"), sugg = panel.querySelector("#tmSugg"), input = panel.querySelector("#tmIn");
+  function render() {
+    body.innerHTML = msgs.map(function (m) {
+      if (m.r === "typing") return '<div class="tm-typing">Trademan печатает…</div>';
+      return '<div class="tm-msg tm-' + m.r + '">' + esc(m.t) + '</div>';
+    }).join("");
+    body.scrollTop = body.scrollHeight;
+  }
+  function renderSugg() { sugg.innerHTML = suggestions.map(function (s) { return '<button class="tm-sg">' + esc(s) + '</button>'; }).join(""); sugg.querySelectorAll(".tm-sg").forEach(function (b) { b.onclick = function () { send(b.textContent); }; }); }
+  function send(text) {
+    text = (text || input.value).trim(); if (!text) return; input.value = "";
+    msgs.push({ r: "me", t: text }); msgs.push({ r: "typing" }); render();
+    setTimeout(function () { msgs = msgs.filter(function (m) { return m.r !== "typing"; }); msgs.push({ r: "ai", t: reply(text) }); render(); }, 850);
+  }
+  function toggle(v) { open = v; panel.classList.toggle("open", open); if (open) setTimeout(function () { input.focus(); }, 300); }
+  launch.onclick = function () { toggle(!open); };
+  panel.querySelector(".x").onclick = function () { toggle(false); };
+  panel.querySelector("#tmSend").onclick = function () { send(); };
+  input.addEventListener("keydown", function (e) { if (e.key === "Enter") send(); });
+  render(); renderSugg();
+})();
+
+</script>
+</body>
+</html>
